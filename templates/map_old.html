@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <base target="_top">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Quick Start - Leaflet</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+
+    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+
+    <script src="./lib/geotiff.js"></script>
+    <script src="./lib/plotty.js"></script>
+
+    <script src="./lib/leaflet-geotiff.js"></script>
+
+    <script src="./lib/leaflet.ajax.min.js"></script>
+
+    <style>
+
+    </style>
+
+
+</head>
+
+
+<body>
+
+
+
+    <div id="map" style="width: 600px; height: 500px;"></div>
+
+    <div class="slidecontainer">
+        <input type="range" min="1" max="100" value="1" class="slider" id="slider"><label id="sliderLabel"></label>
+    </div>
+
+    <button id="play">Play</button><button id="stop">Stop</button>
+
+    <script>
+
+        var sim_id = "{{param}}";
+        var sim_step = "{{step}}";
+
+        // INIT MAP
+        const map = L.map('map').setView([15.73099, 100.483035], 12);
+
+        map.createPane("pane250").style.zIndex = 250; // between tiles and overlays
+        map.createPane("pane450").style.zIndex = 450; // between overlays and shadows
+        map.createPane("pane620").style.zIndex = 620; // between markers and tooltips
+        map.createPane("pane800").style.zIndex = 800; // above popups
+
+        // ADD BASE LAYERS
+        const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            pane: 'pane250',
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+
+        const googleHybridLayer = L.tileLayer('http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', {
+            maxZoom: 19,
+            pane: 'pane250',
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        });
+
+
+
+
+
+
+
+        // TIME SLIDER ========================================================================================
+
+        function generateIntegerList(n) {
+            const integerList = [];
+            for (let i = 1; i <= n; i++) {
+                integerList.push(i);
+            }
+            return integerList;
+        }
+
+        // Usage
+        var stepList = generateIntegerList(sim_step);
+        console.log(stepList)
+        //storing all possible times
+        var timeValues = []
+        for (var i in stepList) {
+            timeValues.push(sim_id + "_" + stepList[i]);
+            //console.log(sim_id + "_" + stepList[i])
+        }
+
+
+
+        //setting max value of the slider
+        document.getElementById("slider").max = "" + timeValues.length + "";
+
+        //setting default label of the slider
+        document.getElementById("sliderLabel").innerHTML = timeValues[0]
+
+        //change the prefix of the url if your images are not in the same folder as your script
+        var urlPrefix = "../map_store/"
+        //var urlPrefix = "http://127.0.0.1:5000/map_store/"
+
+        var url = urlPrefix + timeValues[0] + ".tif"
+
+        // ADD RASTER LAYER
+        var imageOverlay = L.leafletGeotiff(
+            url = url,
+            options = {
+                band: 0,
+                displayMin: 2,
+                displayMax: 800,
+                name: 'Agent Map',
+                colorScale: 'rainbow',
+                clampLow: false,
+                clampHigh: true,
+                opacity: 0.5,
+                pane: 'pane620',
+                //vector:true,
+                //arrowSize: 20,
+            }
+        ).addTo(map);
+
+
+
+        //function when sliding
+        slider.oninput = function () {
+            //changing the label
+            document.getElementById("sliderLabel").innerHTML = timeValues[this.value - 1]
+            //setting the url of the overlay
+            console.log('SLIDER oninput: ' + urlPrefix + timeValues[this.value - 1] + ".tif")
+            imageOverlay.setUrl(urlPrefix + timeValues[this.value - 1] + ".tif")
+        }
+
+        var playTimeOut;
+
+        function play() {
+            playTimeOut = setTimeout(function () {
+                //increasing the slider by 1 (if not already at the end)
+                var val = document.getElementById("slider").value
+                console.log(val)
+                //if end of slider, stopping
+                if (val == document.getElementById("slider").max) {
+                    clearTimeout(playTimeOut);
+                    //hidding the stop button
+                    document.getElementById('stop').style.display = "none";
+                    //showing the play button
+                    document.getElementById('play').style.display = "block";
+                }
+                else {
+                    document.getElementById("slider").value = Number(val) + 1
+                    play()
+                }
+                //changing the label
+                document.getElementById("sliderLabel").innerHTML = timeValues[Number(val) - 1]
+
+
+                //setting the url of the overlay
+                console.log('Play : ' + urlPrefix + timeValues[Number(val) - 1] + ".tif")
+                imageOverlay.setUrl(urlPrefix + timeValues[Number(val) - 1] + ".tif")
+
+            }, 1000);
+        }
+
+        document.getElementById('play').onclick = function (e) {
+            play()
+            //showing the stop button
+            document.getElementById('stop').style.display = "block";
+            //hidding the play button
+            document.getElementById('play').style.display = "none";
+        }
+
+        document.getElementById('stop').onclick = function (e) {
+            clearTimeout(playTimeOut);
+            //hidding the stop button
+            document.getElementById('stop').style.display = "none";
+            //showing the play button
+            document.getElementById('play').style.display = "block";
+        }
+
+        //hidding the stop button by default
+        document.getElementById('stop').style.display = "none";
+
+        var marker;
+        map.on('click', function (e) {
+
+            console.log("Agent ID : "+imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0));
+
+            if (!marker) {
+                marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+                agent_id = imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0)
+
+                if (agent_id < 0){
+                    showText = 'ไม่มีตัวแทนบริเวณนี้'
+                }else{
+                    showText = agent_id
+                }
+                marker.bindPopup("หมายเลขตัวแทน : "+showText).openPopup();
+            } else {
+                marker.setLatLng([e.latlng.lat, e.latlng.lng]);
+                agent_id = imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0)
+
+                if (agent_id < 0){
+                    showText = 'ไม่มีตัวแทนบริเวณนี้'
+                }else{
+                    showText = agent_id
+                }
+                marker.bindPopup("หมายเลขตัวแทน : "+showText).openPopup();
+            }
+            //document.getElementById("windSpeedValue").innerHTML = windSpeed.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(1);
+            //document.getElementById("windDirectionValue").innerHTML = windDirection.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0);
+        });
+
+
+        // OTHER LAYER ===========================================================
+
+        var rainMap = L.leafletGeotiff(
+            url = '../data/rain.tif',
+            options = {
+                //band: 0,
+                displayMin: 0,
+                displayMax: 255,
+                name: 'Rain Map',
+                colorScale: 'winter',
+                clampLow: true,
+                clampHigh: true,
+                opacity: 0.5,
+                pane: 'pand450',
+                //vector:true,
+                //arrowSize: 20,
+            }
+        );
+
+        var tempMap = L.leafletGeotiff(
+            url = '../data/temp.tif',
+            options = {
+                // band: 0,
+                displayMin: 0,
+                displayMax: 255,
+                name: 'Temp Map',
+                colorScale: 'hot',
+                clampLow: true,
+                clampHigh: true,
+                pane: 'pand450',
+                opacity: 0.5,
+                //vector:true,
+                //arrowSize: 20,
+            }
+        );
+
+        var demMap = L.leafletGeotiff(
+            url = '../data/dem_rendered.tif',
+            options = {
+                band: 0,
+                displayMin: 0,
+                displayMax: 300,
+                name: 'DEM Map',
+                colorScale: 'greens',
+                clampLow: false,
+                clampHigh: false,
+                opacity: 0.2,
+                pane: 'pand450',
+                //vector:true,
+                //arrowSize: 20,
+            }
+        );
+
+        var nksw_bnd = new L.GeoJSON.AJAX("./data/nksw_bnd.geojson");
+
+
+
+        var baseMaps = {
+            "OpenStreetMap": osmLayer,
+            "Google Satellite": googleHybridLayer,
+        };
+
+        var overlayMaps = {
+            "แผนที่ตัวแทน": imageOverlay,
+            "แผนที่น้ำฝน": rainMap,
+            "แผนที่อุณหภูมิ": tempMap,
+            "แผนที่ความสูง": demMap,
+            "ขอบเขตจังหวัดนครสวรรค์": nksw_bnd,
+        };
+
+        var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+    </script>
+
+</body>
+
+</html>

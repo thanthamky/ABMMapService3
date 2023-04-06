@@ -15,6 +15,11 @@
 
     <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
 
+    <link rel="stylesheet" href="./lib/leaflet.groupedlayercontrol.css" />
+    <script src="./lib/leaflet.groupedlayercontrol.js"></script>
+
+
+
     <script src="./lib/geotiff.js"></script>
     <script src="./lib/plotty.js"></script>
 
@@ -23,7 +28,15 @@
     <script src="./lib/leaflet.ajax.min.js"></script>
 
     <style>
+        .checkbox-container {
+            display: inline-block;
+            margin-right: 10px;
+        }
 
+        .checkbox-container input,
+        .checkbox-container label {
+            display: inline-block;
+        }
     </style>
 
 
@@ -32,7 +45,24 @@
 
 <body>
 
+    <div class="checkbox-container">
+        <input type="checkbox" id="1" onchange="processCheck(this)">
+        <label for="checkbox1">แผนที่ตัวแทน</label>
+    </div>
 
+    <div class="checkbox-container">
+        <input type="checkbox" id="2" onchange="processCheck(this)">
+        <label for="checkbox2">แผนที่เกษตรกรรม</label>
+    </div>
+
+    <div class="checkbox-container">
+        <input type="checkbox" id="3" onchange="processCheck(this)">
+        <label for="checkbox3">แผนที่รายได้</label>
+    </div>
+
+    <!--input type="checkbox" id="1" onchange="processCheck(this)">แผนที่ตัวแทน<br>
+    <input type="checkbox" id="2" onchange="processCheck(this)">แผนที่เกษตรกรรม<br>
+    <input type="checkbox" id="3" onchange="processCheck(this)">แผนที่รายได้<br><br-->
 
     <div id="map" style="width: 600px; height: 500px;"></div>
 
@@ -46,14 +76,27 @@
 
         var sim_id = "{{param}}";
         var sim_step = "{{step}}";
+        var map_type = "{{map_type}}";
 
         // INIT MAP
-        const map = L.map('map').setView([15.73099, 100.483035], 12);
+
+        var map_lat = 15.73099;
+        var map_lon = 100.483035;
+        var map_zoom = 12;
+
+        const map = L.map('map').setView([map_lat, map_lon], map_zoom);
 
         map.createPane("pane250").style.zIndex = 250; // between tiles and overlays
         map.createPane("pane450").style.zIndex = 450; // between overlays and shadows
         map.createPane("pane620").style.zIndex = 620; // between markers and tooltips
         map.createPane("pane800").style.zIndex = 800; // above popups
+
+        map.on("moveend", function () {
+            console.log(map.getCenter().toString());
+            map_lat = map.getCenter().lat;
+            map_lon = map.getCenter().lng;
+            map_zoom = map.getZoom();
+        });
 
         // ADD BASE LAYERS
         const osmLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -87,15 +130,46 @@
 
         // Usage
         var stepList = generateIntegerList(sim_step);
+
+
+        console.log(stepList)
+
+        //storing all possible times
+        var timeValues_agent = []
+        for (var i in stepList) {
+            timeValues_agent.push(sim_id + "_agent_" + stepList[i]);
+            console.log("Time values Agent List: " + timeValues_agent[i])
+        }
+
+        // Usage
+
+        console.log(stepList)
+        //storing all possible times
+        var timeValues_lc = []
+        for (var i in stepList) {
+            timeValues_lc.push(sim_id + "_lc_" + stepList[i]);
+            //console.log(sim_id + "_" + stepList[i])
+        }
+
+        // Usage
+
+        console.log(stepList)
+        //storing all possible times
+        var timeValues_income = []
+        for (var i in stepList) {
+            timeValues_income.push(sim_id + "_income_" + stepList[i]);
+            //console.log(sim_id + "_" + stepList[i])
+        }
+
+        // Usage
+
         console.log(stepList)
         //storing all possible times
         var timeValues = []
         for (var i in stepList) {
-            timeValues.push(sim_id + "_" + stepList[i]);
+            timeValues.push(sim_id + "_agent_" + stepList[i]);
             //console.log(sim_id + "_" + stepList[i])
         }
-
-
 
         //setting max value of the slider
         document.getElementById("slider").max = "" + timeValues.length + "";
@@ -127,6 +201,59 @@
             }
         ).addTo(map);
 
+        // ADD RASTER LAYER
+        var imageOverlay_agent = L.leafletGeotiff(
+            url = url,
+            options = {
+                band: 0,
+                displayMin: 2,
+                displayMax: 800,
+                name: 'Agent Map',
+                colorScale: 'rainbow',
+                clampLow: false,
+                clampHigh: true,
+                opacity: 0.5,
+                pane: 'pane620',
+                //vector:true,
+                //arrowSize: 20,
+            }
+        )
+        // ADD RASTER LAYER
+        var imageOverlay_lc = L.leafletGeotiff(
+            url = url,
+            options = {
+                band: 0,
+                displayMin: 2,
+                displayMax: 800,
+                name: 'Agent Map',
+                colorScale: 'rainbow',
+                clampLow: false,
+                clampHigh: true,
+                opacity: 0.5,
+                pane: 'pane620',
+                //vector:true,
+                //arrowSize: 20,
+            }
+        )
+
+        // ADD RASTER LAYER
+        var imageOverlay_income = L.leafletGeotiff(
+            url = url,
+            options = {
+                band: 0,
+                displayMin: 2,
+                displayMax: 800,
+                name: 'Agent Map',
+                colorScale: 'rainbow',
+                clampLow: false,
+                clampHigh: true,
+                opacity: 0.5,
+                pane: 'pane620',
+                //vector:true,
+                //arrowSize: 20,
+            }
+        )
+
 
 
         //function when sliding
@@ -136,6 +263,7 @@
             //setting the url of the overlay
             console.log('SLIDER oninput: ' + urlPrefix + timeValues[this.value - 1] + ".tif")
             imageOverlay.setUrl(urlPrefix + timeValues[this.value - 1] + ".tif")
+            map.flyTo([map_lat, map_lon], map_zoom);
         }
 
         var playTimeOut;
@@ -164,6 +292,7 @@
                 //setting the url of the overlay
                 console.log('Play : ' + urlPrefix + timeValues[Number(val) - 1] + ".tif")
                 imageOverlay.setUrl(urlPrefix + timeValues[Number(val) - 1] + ".tif")
+                map.flyTo([map_lat, map_lon], map_zoom);
 
             }, 1000);
         }
@@ -190,28 +319,28 @@
         var marker;
         map.on('click', function (e) {
 
-            console.log("Agent ID : "+imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0));
+            console.log("หมุดข้อมูลพื้นที่: " + imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0));
 
             if (!marker) {
                 marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
                 agent_id = imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0)
 
-                if (agent_id < 0){
+                if (agent_id < 0) {
                     showText = 'ไม่มีตัวแทนบริเวณนี้'
-                }else{
+                } else {
                     showText = agent_id
                 }
-                marker.bindPopup("หมายเลขตัวแทน : "+showText).openPopup();
+                marker.bindPopup("ข้อมูลตำแหน่ง : " + showText).openPopup();
             } else {
                 marker.setLatLng([e.latlng.lat, e.latlng.lng]);
                 agent_id = imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0)
 
-                if (agent_id < 0){
+                if (agent_id < 0) {
                     showText = 'ไม่มีตัวแทนบริเวณนี้'
-                }else{
+                } else {
                     showText = agent_id
                 }
-                marker.bindPopup("หมายเลขตัวแทน : "+showText).openPopup();
+                marker.bindPopup("ข้อมูลตำแหน่ง : " + showText).openPopup();
             }
             //document.getElementById("windSpeedValue").innerHTML = windSpeed.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(1);
             //document.getElementById("windDirectionValue").innerHTML = windDirection.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0);
@@ -232,6 +361,7 @@
                 clampHigh: true,
                 opacity: 0.5,
                 pane: 'pand450',
+                interactive: true,
                 //vector:true,
                 //arrowSize: 20,
             }
@@ -271,6 +401,23 @@
             }
         );
 
+        var irrigationMap = L.leafletGeotiff(
+            url = '../data/irrigation_map.tif',
+            options = {
+                band: 0,
+                displayMin: 1,
+                displayMax: 2,
+                name: 'Irrigation Map',
+                colorScale: 'cool',
+                clampLow: false,
+                clampHigh: false,
+                opacity: 0.2,
+                pane: 'pand450',
+                //vector:true,
+                //arrowSize: 20,
+            }
+        );
+
         var nksw_bnd = new L.GeoJSON.AJAX("./data/nksw_bnd.geojson");
 
 
@@ -281,14 +428,55 @@
         };
 
         var overlayMaps = {
-            "แผนที่ตัวแทน": imageOverlay,
+            "แผนที่ระบบจำลอง": imageOverlay,
             "แผนที่น้ำฝน": rainMap,
             "แผนที่อุณหภูมิ": tempMap,
             "แผนที่ความสูง": demMap,
             "ขอบเขตจังหวัดนครสวรรค์": nksw_bnd,
+            "พื้นที่ชลประทาน": irrigationMap,
         };
 
         var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+
+
+        selId = null;
+
+        function processCheck(checkbox) {
+            var checkId = checkbox.id;
+            console.log(checkId)
+            if (checkbox.checked) {
+                if (selId != null) {
+                    //map.removeLayer(layerArray[selId - 1]);
+                    document.getElementById(selId).checked = false;
+                }
+                //layerArray[checkId - 1].addTo(map);
+                selId = checkId;
+                if (checkId == 1) {
+                    timeValues = timeValues_agent;
+                    imageOverlay = imageOverlay_agent;
+                    console.log("Time Values: " + timeValues_agent);
+                    console.log(imageOverlay);
+                } else if (checkId == 2) {
+                    timeValues = timeValues_lc;
+                    imageOverlay = imageOverlay_lc;
+                    console.log("Time Values: " + timeValues_lc);
+                    console.log(imageOverlay);
+                } else if (checkId == 3) {
+                    timeValues = timeValues_income;
+                    imageOverlay = imageOverlay_income;
+                    console.log("Time Values: " + timeValues_income);
+                    console.log(imageOverlay);
+                }
+
+            }
+            else {
+                //map.removeLayer(layerArray[checkId - 1]);
+                selId = null;
+
+
+            }
+        }
 
     </script>
 

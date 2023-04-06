@@ -124,12 +124,12 @@ class MapMaker:
             
         return output_file_path
             
-    def make_map(self, map_data, start_row, start_col, sim_id, step, subset_width, subset_height, output_base_path):
+    def make_map(self, map_data, map_type, start_row, start_col, sim_id, step, subset_width, subset_height, output_base_path):
     
         subset_bbox = self.get_bbox_from_numpy_array(map_data, start_row, start_col, self.pixel_size, self.transform)
         
         # Example usage:
-        output_raster_path = os.path.join(output_base_path, f"{sim_id}_{str(step)}.tif")
+        output_raster_path = os.path.join(output_base_path, f"{sim_id}_{map_type}_{str(step)}.tif")
         
         subset_raster_dataset = self.subset_raster(self.base_raster_path, start_row, start_col, subset_width, subset_height, map_data)
 

@@ -31,7 +31,7 @@ def show_map():
     
     print(f'Receive getting map .. sim ID {param}')
     
-    map_list = list_files_in_directory_by_pattern('./map_store', param)
+    map_list = list_files_in_directory_by_pattern('./map_store', param+"_agent")
     
     print(f'... Found {map_list} {len(map_list)} maps in total')
     step = len(map_list)
@@ -62,6 +62,7 @@ def make_map():
     # RECEIVE ARGUMENTS
     sim_id = request.args.get('simid')
     step = eval(request.args.get('step'))
+    map_type = request.args.get('type') #['agent', 'lc', 'income']
     start_i = eval(request.args.get('i'))
     start_j = eval(request.args.get('j'))
     shape = request.args.get('shape')
@@ -86,7 +87,7 @@ def make_map():
     
     print(f'\n\n shape data: {map_data.shape}\n sim_id {sim_id} \n step {step} \n start i {start_i} \n start j {start_j} \n\n')
     
-    saved_path = mapmaker.make_map(map_data, start_i, start_j, sim_id, step, data_shape[0], data_shape[1], './map_store' )
+    saved_path = mapmaker.make_map(map_data, map_type, start_i, start_j, sim_id, step, data_shape[0], data_shape[1], './map_store' )
     
     print(f'saved at {saved_path}')
     return {"status" : f"Saved at {saved_path}"}

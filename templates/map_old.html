@@ -27,6 +27,9 @@
 
     <script src="./lib/leaflet.ajax.min.js"></script>
 
+    <link rel="stylesheet" href="./lib/leaflet.legend.css" />
+    <script type="text/javascript" src="./lib/leaflet.legend.js"></script>
+
     <style>
         .checkbox-container {
             display: inline-block;
@@ -44,7 +47,9 @@
 
 
 <body>
-
+    <div class="checkbox-container">
+        <label for="checkbox0">ประเภทแผนที่ตัวแทน</label>
+    </div>
     <div class="checkbox-container">
         <input type="checkbox" id="1" onchange="processCheck(this)">
         <label for="checkbox1">แผนที่ตัวแทน</label>
@@ -80,9 +85,17 @@
 
         // INIT MAP
 
-        var map_lat = 15.73099;
-        var map_lon = 100.483035;
-        var map_zoom = 12;
+        // OLD 500x500
+        //var map_lat = 15.73099;
+        //var map_lon = 100.483035;
+        //var map_zoom = 12;
+
+        //15.73652, 100.53011
+
+        var map_lat = 15.70483;
+        var map_lon = 100.0648;
+        var map_zoom = 9;
+
 
         const map = L.map('map').setView([map_lat, map_lon], map_zoom);
 
@@ -92,7 +105,7 @@
         map.createPane("pane800").style.zIndex = 800; // above popups
 
         map.on("moveend", function () {
-            console.log(map.getCenter().toString());
+            console.log(map.getCenter().toString() + map.getZoom());
             map_lat = map.getCenter().lat;
             map_lon = map.getCenter().lng;
             map_zoom = map.getZoom();
@@ -353,11 +366,11 @@
             url = '../data/rain.tif',
             options = {
                 //band: 0,
-                displayMin: 0,
+                displayMin: 10,
                 displayMax: 255,
                 name: 'Rain Map',
-                colorScale: 'winter',
-                clampLow: true,
+                colorScale: 'rain',
+                clampLow: false,
                 clampHigh: true,
                 opacity: 0.5,
                 pane: 'pand450',
@@ -371,11 +384,11 @@
             url = '../data/temp.tif',
             options = {
                 // band: 0,
-                displayMin: 0,
-                displayMax: 255,
+                displayMin: 1,
+                displayMax: 300,
                 name: 'Temp Map',
-                colorScale: 'hot',
-                clampLow: true,
+                colorScale: 'temp',
+                clampLow: false,
                 clampHigh: true,
                 pane: 'pand450',
                 opacity: 0.5,
@@ -388,12 +401,12 @@
             url = '../data/dem_rendered.tif',
             options = {
                 band: 0,
-                displayMin: 0,
-                displayMax: 300,
+                displayMin: 1,
+                displayMax: 400,
                 name: 'DEM Map',
-                colorScale: 'greens',
+                colorScale: 'dem',
                 clampLow: false,
-                clampHigh: false,
+                clampHigh: true,
                 opacity: 0.2,
                 pane: 'pand450',
                 //vector:true,
@@ -438,10 +451,10 @@
 
         var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
 
+        
 
-
-        selId = null;
-
+        selId = 1;
+        document.getElementById(selId).checked = true;
         function processCheck(checkbox) {
             var checkId = checkbox.id;
             console.log(checkId)
@@ -477,6 +490,49 @@
 
             }
         }
+
+        // ADD LEGEND ===============
+
+        const legend = L.control.Legend({
+            position: "bottomright",
+            collapsed: false,
+            symbolWidth: 18,
+            opacity: 1,
+            column: 1,
+            legends: [{
+                label: "แผนที่ที่เลือก",
+                type: "image",
+                url: "./data/legend_hot_reverse_temp.png"
+            },{
+                label: "ความสูงภูมิประเทศ",
+                type: "image",
+                url: "./data/legend_green_dem.png",
+            }, {
+                label: "น้ำฝนสะสม",
+                type: "image",
+                url: "./data/legend_rainbow_rain.png"
+            }, {
+                label: "อุณหภูมิเฉลี่ย",
+                type: "image",
+                url: "./data/legend_hot_reverse_temp.png"
+            }, {
+                label: "พื้นที่ชลประทาน",
+                type: "polygon",
+                sides: 4,
+                color: "#00FEFF",
+                fillColor: "#00FEFF",
+                weight: 2
+            }, {
+                label: "ขอบเขตนครสวรรค์",
+                type: "polygon",
+                sides: 4,
+                color: "#3388FF",
+                fillColor: "#D8E7FF",
+                weight: 2,
+                layer: nksw_bnd,
+            },]
+        })
+        .addTo(map);
 
     </script>
 

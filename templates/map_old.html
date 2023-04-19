@@ -48,7 +48,7 @@
 
 <body>
     <div class="checkbox-container">
-        <label for="checkbox0">ประเภทแผนที่ตัวแทน</label>
+        <label for="checkbox0">แผนที่ตัวแทน</label>
     </div>
     <div class="checkbox-container">
         <input type="checkbox" id="1" onchange="processCheck(this)">
@@ -72,7 +72,7 @@
     <div id="map" style="width: 100%; height: 500px;"></div>
 
     <!--div id="map" style="height: 500px;"></div-->
-    
+
     <div class="slidecontainer">
         <input type="range" min="1" max="100" value="1" class="slider" id="slider"><label id="sliderLabel"></label>
     </div>
@@ -148,14 +148,15 @@
         var stepList = generateIntegerList(sim_step);
 
 
-        console.log(stepList)
+        console.log(stepList);
 
         //storing all possible times
         var timeValues_agent = []
         for (var i in stepList) {
             timeValues_agent.push(sim_id + "_agent_" + stepList[i]);
-            console.log("Time values Agent List: " + timeValues_agent[i])
+
         }
+        console.log(timeValues_agent);
 
         // Usage
 
@@ -164,8 +165,9 @@
         var timeValues_lc = []
         for (var i in stepList) {
             timeValues_lc.push(sim_id + "_lc_" + stepList[i]);
-            //console.log(sim_id + "_" + stepList[i])
+
         }
+        console.log(timeValues_lc);
 
         // Usage
 
@@ -174,18 +176,16 @@
         var timeValues_income = []
         for (var i in stepList) {
             timeValues_income.push(sim_id + "_income_" + stepList[i]);
-            //console.log(sim_id + "_" + stepList[i])
+
         }
+        console.log(timeValues_income);
 
         // Usage
 
         console.log(stepList)
         //storing all possible times
-        var timeValues = []
-        for (var i in stepList) {
-            timeValues.push(sim_id + "_agent_" + stepList[i]);
-            //console.log(sim_id + "_" + stepList[i])
-        }
+        var timeValues = timeValues_agent;
+
 
         //setting max value of the slider
         document.getElementById("slider").max = "" + timeValues.length + "";
@@ -197,11 +197,11 @@
         var urlPrefix = "../map_store/"
         //var urlPrefix = "http://127.0.0.1:5000/map_store/"
 
-        var url = urlPrefix + timeValues[0] + ".tif"
+        var url = urlPrefix + timeValues_agent[0] + ".tif"
 
         // ADD RASTER LAYER
         var imageOverlay = L.leafletGeotiff(
-            url = url,
+            url = urlPrefix + timeValues_agent[0] + ".tif",
             options = {
                 band: 0,
                 displayMin: 2,
@@ -219,7 +219,7 @@
 
         // ADD RASTER LAYER
         var imageOverlay_agent = L.leafletGeotiff(
-            url = url,
+            url = urlPrefix + timeValues_agent[0] + ".tif",
             options = {
                 band: 0,
                 displayMin: 2,
@@ -233,28 +233,28 @@
                 //vector:true,
                 //arrowSize: 20,
             }
-        )
+        );
         // ADD RASTER LAYER
         var imageOverlay_lc = L.leafletGeotiff(
-            url = url,
+            url = urlPrefix + timeValues_lc[0] + ".tif",
             options = {
                 band: 0,
                 displayMin: 2,
-                displayMax: 800,
-                name: 'Agent Map',
+                displayMax: 20,
+                name: 'LC Map',
                 colorScale: 'rainbow',
                 clampLow: false,
-                clampHigh: true,
+                clampHigh: false,
                 opacity: 0.5,
                 pane: 'pane620',
                 //vector:true,
                 //arrowSize: 20,
             }
-        )
+        );
 
         // ADD RASTER LAYER
         var imageOverlay_income = L.leafletGeotiff(
-            url = url,
+            url = urlPrefix + timeValues_income[0] + ".tif",
             options = {
                 band: 0,
                 displayMin: 2,
@@ -268,7 +268,7 @@
                 //vector:true,
                 //arrowSize: 20,
             }
-        )
+        );
 
 
 
@@ -277,7 +277,7 @@
             //changing the label
             document.getElementById("sliderLabel").innerHTML = timeValues[this.value - 1]
             //setting the url of the overlay
-            console.log('SLIDER oninput: ' + urlPrefix + timeValues[this.value - 1] + ".tif")
+            console.log('SLIDER oninput: ' + urlPrefix + timeValues[this.value - 1] + ".tif");
             imageOverlay.setUrl(urlPrefix + timeValues[this.value - 1] + ".tif")
             map.flyTo([map_lat, map_lon], map_zoom);
         }
@@ -287,8 +287,8 @@
         function play() {
             playTimeOut = setTimeout(function () {
                 //increasing the slider by 1 (if not already at the end)
-                var val = document.getElementById("slider").value
-                console.log(val)
+                var val = document.getElementById("slider").value;
+                console.log(val);
                 //if end of slider, stopping
                 if (val == document.getElementById("slider").max) {
                     clearTimeout(playTimeOut);
@@ -298,16 +298,19 @@
                     document.getElementById('play').style.display = "block";
                 }
                 else {
-                    document.getElementById("slider").value = Number(val) + 1
-                    play()
+                    document.getElementById("slider").value = Number(val) + 1;
+                    play();
                 }
+
                 //changing the label
-                document.getElementById("sliderLabel").innerHTML = timeValues[Number(val) - 1]
+                document.getElementById("sliderLabel").innerHTML = timeValues[Number(val) - 1];
 
 
                 //setting the url of the overlay
-                console.log('Play : ' + urlPrefix + timeValues[Number(val) - 1] + ".tif")
-                imageOverlay.setUrl(urlPrefix + timeValues[Number(val) - 1] + ".tif")
+                console.log('Play : ' + urlPrefix + timeValues[Number(val) - 1] + ".tif");
+
+
+                imageOverlay.setUrl(urlPrefix + timeValues[Number(val) - 1] + ".tif");
                 map.flyTo([map_lat, map_lon], map_zoom);
 
             }, 1000);
@@ -335,93 +338,101 @@
         var marker;
         map.on('click', function (e) {
 
-            
-            console.log("หมุดข้อมูลพื้นที่: " + imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0));
+
+            console.log("หมุดข้อมูลพื้นที่: " + imageOverlay_lc.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0));
 
             if (!marker) {
                 marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
-                location_info = imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0)
+                location_info = imageOverlay_agent.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0);
 
                 if (location_info < 0) {
                     showText = 'ไม่มีตัวแทนบริเวณนี้'
                 } else {
 
-                    if (map_type == 1){
+                    if (map_type == 1) {
 
+                        location_info = imageOverlay_agent.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0);
                         showText = "หมายเลขตัวแทน " + location_info;
 
-                    }else if (map_type == 2){
+                    } else if (map_type == 2) {
 
-                        if (location_info == 0){
+                        location_info = imageOverlay_lc.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0);
+
+                        if (location_info == 0) {
                             showText = "ไม่มีการทำเกษตรกรรม " + location_info;
-                        }else if (location_info == 1){
+                        } else if (location_info == 1) {
                             showText = "ประเภทเกษตรกรรม ข้าวเจ้าหอมมะลิ";
-                        }else if (location_info == 2){
+                        } else if (location_info == 2) {
                             showText = "ประเภทเกษตรกรรม ข้าวเจ้าปทุมธานี 1";
-                        }else if (location_info == 3){
+                        } else if (location_info == 3) {
                             showText = "ประเภทเกษตรกรรม ข้าวเจ้าขาวอื่น";
-                        }else if (location_info == 4){
+                        } else if (location_info == 4) {
                             showText = "ประเภทเกษตรกรรม ข้าวเหนียว";
-                        }else if (location_info == 5){
+                        } else if (location_info == 5) {
                             showText = "ประเภทเกษตรกรรม ข้าวโพดเลี้ยงสัตว์";
-                        }else if (location_info == 6){
+                        } else if (location_info == 6) {
                             showText = "ประเภทเกษตรกรรม มันสำปะหลังโรงงาน";
-                        }else if (location_info == 7){
+                        } else if (location_info == 7) {
                             showText = "ประเภทเกษตรกรรม อ้อยโรงงาน";
-                        }else if (location_info == 8){
+                        } else if (location_info == 8) {
                             showText = "ประเภทเกษตรกรรม ยางพารา";
-                        }else if (location_info == 9){
+                        } else if (location_info == 9) {
                             showText = "ประเภทเกษตรกรรม ปาล์มน้ำมัน";
                         }
 
 
-                    }else if (map_type == 3){
-                        showText = "รายได้ตัวแทน " + location_info;
+                    } else if (map_type == 3) {
+                        location_info = imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0);
+                        console.log(location_info);
+                        showText = "รายได้ตัวแทน " + location_info + " บาท";
                     }
-                    
+
                 }
                 marker.bindPopup("ข้อมูลตำแหน่ง : " + showText).openPopup();
             } else {
                 marker.setLatLng([e.latlng.lat, e.latlng.lng]);
-                location_info = imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0)
+                location_info = imageOverlay_agent.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0);
 
                 if (location_info < 0) {
                     showText = 'ไม่มีตัวแทนบริเวณนี้'
                 } else {
 
-                    if (map_type == 1){
-
+                    if (map_type == 1) {
+                        location_info = imageOverlay_agent.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0);
                         showText = "หมายเลขตัวแทน " + location_info;
 
-                    }else if (map_type == 2){
-
-                        if (location_info == 0){
+                    } else if (map_type == 2) {
+                        location_info = imageOverlay_lc.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0);
+                        console.log("location info " + location_info);
+                        if (location_info == 0) {
                             showText = "ไม่มีการทำเกษตรกรรม " + location_info;
-                        }else if (location_info == 1){
+                        } else if (location_info == 1) {
                             showText = "ประเภทเกษตรกรรม ข้าวเจ้าหอมมะลิ";
-                        }else if (location_info == 2){
+                        } else if (location_info == 2) {
                             showText = "ประเภทเกษตรกรรม ข้าวเจ้าปทุมธานี 1";
-                        }else if (location_info == 3){
+                        } else if (location_info == 3) {
                             showText = "ประเภทเกษตรกรรม ข้าวเจ้าขาวอื่น";
-                        }else if (location_info == 4){
+                        } else if (location_info == 4) {
                             showText = "ประเภทเกษตรกรรม ข้าวเหนียว";
-                        }else if (location_info == 5){
+                        } else if (location_info == 5) {
                             showText = "ประเภทเกษตรกรรม ข้าวโพดเลี้ยงสัตว์";
-                        }else if (location_info == 6){
+                        } else if (location_info == 6) {
                             showText = "ประเภทเกษตรกรรม มันสำปะหลังโรงงาน";
-                        }else if (location_info == 7){
+                        } else if (location_info == 7) {
                             showText = "ประเภทเกษตรกรรม อ้อยโรงงาน";
-                        }else if (location_info == 8){
+                        } else if (location_info == 8) {
                             showText = "ประเภทเกษตรกรรม ยางพารา";
-                        }else if (location_info == 9){
+                        } else if (location_info == 9) {
                             showText = "ประเภทเกษตรกรรม ปาล์มน้ำมัน";
                         }
 
 
-                    }else if (map_type == 3){
-                        showText = "รายได้ตัวแทน " + location_info;
+                    } else if (map_type == 3) {
+                        location_info = imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0);
+                        console.log(location_info);
+                        showText = "รายได้ตัวแทน " + location_info + " บาท";
                     }
-                    
+
                 }
                 marker.bindPopup("ข้อมูลตำแหน่ง : " + showText).openPopup();
             }
@@ -521,12 +532,15 @@
 
         var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
 
-        
 
-        selId = 1;
-        document.getElementById(selId).checked = true;
+
+        var selId = 1;
+
+        document.getElementById(1).checked = true;
+
         function processCheck(checkbox) {
             var checkId = checkbox.id;
+
             console.log(checkId)
             if (checkbox.checked) {
                 if (selId != null) {
@@ -536,31 +550,86 @@
                 //layerArray[checkId - 1].addTo(map);
                 selId = checkId;
                 if (checkId == 1) {
+
                     timeValues = timeValues_agent;
-                    imageOverlay = imageOverlay_agent;
+                    console.log(timeValues);
+                    map.removeLayer(imageOverlay);
+                    imageOverlay = L.leafletGeotiff(
+                        url = urlPrefix + timeValues[0] + ".tif",
+                        options = {
+                            band: 0,
+                            displayMin: 2,
+                            displayMax: 800,
+                            name: 'Agent Map',
+                            colorScale: 'rainbow',
+                            clampLow: false,
+                            clampHigh: true,
+                            opacity: 0.5,
+                            pane: 'pane620',
+                            //vector:true,
+                            //arrowSize: 20,
+                        }
+                    ).addTo(map);
                     console.log("Time Values: " + timeValues_agent);
                     console.log(imageOverlay);
                     map_type = 1;
                 } else if (checkId == 2) {
+
                     timeValues = timeValues_lc;
-                    imageOverlay = imageOverlay_lc;
+                    console.log(timeValues);
+                    map.removeLayer(imageOverlay);
+                    imageOverlay = L.leafletGeotiff(
+                        url = urlPrefix + timeValues[0] + ".tif",
+                        options = {
+                            band: 0,
+                            displayMin: 1,
+                            displayMax: 20,
+                            name: 'LC Map',
+                            colorScale: 'earth',
+                            clampLow: false,
+                            clampHigh: false,
+                            opacity: 0.5,
+                            pane: 'pane620',
+                            //vector:true,
+                            //arrowSize: 20,
+                        }
+                    ).addTo(map);;
                     console.log("Time Values: " + timeValues_lc);
                     console.log(imageOverlay);
                     map_type = 2;
                 } else if (checkId == 3) {
+
                     timeValues = timeValues_income;
-                    imageOverlay = imageOverlay_income;
+                    console.log(timeValues);
+                    map.removeLayer(imageOverlay);
+                    imageOverlay = L.leafletGeotiff(
+                        url = urlPrefix + timeValues[0] + ".tif",
+                        options = {
+                            band: 0,
+                            displayMin: 2,
+                            displayMax: 800,
+                            name: 'Agent Map',
+                            colorScale: 'hot',
+                            clampLow: false,
+                            clampHigh: true,
+                            opacity: 0.5,
+                            pane: 'pane620',
+                            //vector:true,
+                            //arrowSize: 20,
+                        }
+                    ).addTo(map);
                     console.log("Time Values: " + timeValues_income);
                     console.log(imageOverlay);
                     map_type = 3;
                 }
-                
+
                 map_type = checkId;
-                console.log("Change Map type to "+ map_type);
+                console.log("Change Map type to " + map_type);
             }
             else {
                 //map.removeLayer(layerArray[checkId - 1]);
                 selId = null;
+                //selId = map_type;
 
 
             }
@@ -574,11 +643,11 @@
             symbolWidth: 18,
             opacity: 1,
             column: 1,
-            legends: [{
+            legends: [/*{
                 label: "แผนที่ที่เลือก",
                 type: "image",
                 url: "./data/legend_hot_reverse_temp.png"
-            },{
+            },*/ {
                 label: "ความสูงภูมิประเทศ",
                 type: "image",
                 url: "./data/legend_green_dem.png",
@@ -607,7 +676,7 @@
                 layer: nksw_bnd,
             },]
         })
-        .addTo(map);
+            .addTo(map);
 
     </script>
 

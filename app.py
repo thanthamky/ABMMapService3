@@ -93,7 +93,6 @@ def make_map():
     #data_shape = (3144, 4726)
     data_shape = eval(shape)
 
-
     map_data = decompress_array_nodecode(file_content, dtype=data_dtype, shape=data_shape)
     
     print(f'\n\n shape data: {map_data.shape}\n sim_id {sim_id} \n step {step} \n start i {start_i} \n start j {start_j} \n\n')

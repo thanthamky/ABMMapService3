@@ -98,6 +98,7 @@
         var map_lon = 100.0648;
         var map_zoom = 9;
 
+        var map_type = 1;
 
         const map = L.map('map').setView([map_lat, map_lon], map_zoom);
 
@@ -334,26 +335,93 @@
         var marker;
         map.on('click', function (e) {
 
+            
             console.log("หมุดข้อมูลพื้นที่: " + imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0));
 
             if (!marker) {
                 marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
-                agent_id = imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0)
+                location_info = imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0)
 
-                if (agent_id < 0) {
+                if (location_info < 0) {
                     showText = 'ไม่มีตัวแทนบริเวณนี้'
                 } else {
-                    showText = agent_id
+
+                    if (map_type == 1){
+
+                        showText = "หมายเลขตัวแทน " + location_info;
+
+                    }else if (map_type == 2){
+
+                        if (location_info == 0){
+                            showText = "ไม่มีการทำเกษตรกรรม " + location_info;
+                        }else if (location_info == 1){
+                            showText = "ประเภทเกษตรกรรม ข้าวเจ้าหอมมะลิ";
+                        }else if (location_info == 2){
+                            showText = "ประเภทเกษตรกรรม ข้าวเจ้าปทุมธานี 1";
+                        }else if (location_info == 3){
+                            showText = "ประเภทเกษตรกรรม ข้าวเจ้าขาวอื่น";
+                        }else if (location_info == 4){
+                            showText = "ประเภทเกษตรกรรม ข้าวเหนียว";
+                        }else if (location_info == 5){
+                            showText = "ประเภทเกษตรกรรม ข้าวโพดเลี้ยงสัตว์";
+                        }else if (location_info == 6){
+                            showText = "ประเภทเกษตรกรรม มันสำปะหลังโรงงาน";
+                        }else if (location_info == 7){
+                            showText = "ประเภทเกษตรกรรม อ้อยโรงงาน";
+                        }else if (location_info == 8){
+                            showText = "ประเภทเกษตรกรรม ยางพารา";
+                        }else if (location_info == 9){
+                            showText = "ประเภทเกษตรกรรม ปาล์มน้ำมัน";
+                        }
+
+
+                    }else if (map_type == 3){
+                        showText = "รายได้ตัวแทน " + location_info;
+                    }
+                    
                 }
                 marker.bindPopup("ข้อมูลตำแหน่ง : " + showText).openPopup();
             } else {
                 marker.setLatLng([e.latlng.lat, e.latlng.lng]);
-                agent_id = imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0)
+                location_info = imageOverlay.getValueAtLatLng(e.latlng.lat, e.latlng.lng).toFixed(0)
 
-                if (agent_id < 0) {
+                if (location_info < 0) {
                     showText = 'ไม่มีตัวแทนบริเวณนี้'
                 } else {
-                    showText = agent_id
+
+                    if (map_type == 1){
+
+                        showText = "หมายเลขตัวแทน " + location_info;
+
+                    }else if (map_type == 2){
+
+                        if (location_info == 0){
+                            showText = "ไม่มีการทำเกษตรกรรม " + location_info;
+                        }else if (location_info == 1){
+                            showText = "ประเภทเกษตรกรรม ข้าวเจ้าหอมมะลิ";
+                        }else if (location_info == 2){
+                            showText = "ประเภทเกษตรกรรม ข้าวเจ้าปทุมธานี 1";
+                        }else if (location_info == 3){
+                            showText = "ประเภทเกษตรกรรม ข้าวเจ้าขาวอื่น";
+                        }else if (location_info == 4){
+                            showText = "ประเภทเกษตรกรรม ข้าวเหนียว";
+                        }else if (location_info == 5){
+                            showText = "ประเภทเกษตรกรรม ข้าวโพดเลี้ยงสัตว์";
+                        }else if (location_info == 6){
+                            showText = "ประเภทเกษตรกรรม มันสำปะหลังโรงงาน";
+                        }else if (location_info == 7){
+                            showText = "ประเภทเกษตรกรรม อ้อยโรงงาน";
+                        }else if (location_info == 8){
+                            showText = "ประเภทเกษตรกรรม ยางพารา";
+                        }else if (location_info == 9){
+                            showText = "ประเภทเกษตรกรรม ปาล์มน้ำมัน";
+                        }
+
+
+                    }else if (map_type == 3){
+                        showText = "รายได้ตัวแทน " + location_info;
+                    }
+                    
                 }
                 marker.bindPopup("ข้อมูลตำแหน่ง : " + showText).openPopup();
             }
@@ -472,18 +540,23 @@
                     imageOverlay = imageOverlay_agent;
                     console.log("Time Values: " + timeValues_agent);
                     console.log(imageOverlay);
+                    map_type = 1;
                 } else if (checkId == 2) {
                     timeValues = timeValues_lc;
                     imageOverlay = imageOverlay_lc;
                     console.log("Time Values: " + timeValues_lc);
                     console.log(imageOverlay);
+                    map_type = 2;
                 } else if (checkId == 3) {
                     timeValues = timeValues_income;
                     imageOverlay = imageOverlay_income;
                     console.log("Time Values: " + timeValues_income);
                     console.log(imageOverlay);
+                    map_type = 3;
                 }
-
+                
+                map_type = checkId;
+                console.log("Change Map type to "+ map_type);
             }
             else {
                 //map.removeLayer(layerArray[checkId - 1]);

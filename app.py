@@ -5,6 +5,8 @@ from map_maker import MapMaker
 from agents_locator import *
 from array_compressor import *
 
+import numpy as np
+
 app = Flask(__name__)
 # ... other code ...
 
@@ -78,7 +80,16 @@ def make_map():
 
     # CONVERT DATA
 
-    data_dtype = 'int16'
+    if map_type == 'agent':
+        data_dtype = np.int32
+    elif map_type == 'lc':
+        data_dtype = object
+    elif map_type == 'income':
+        data_dtype = np.float64
+
+    print(f'receive map {map_type} define dtype as {data_dtype}')
+    #data_dtype = 'int16' #income 'float64' , #lc 'object', #agent
+
     #data_shape = (3144, 4726)
     data_shape = eval(shape)
 
